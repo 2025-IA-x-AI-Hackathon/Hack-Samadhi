@@ -37,13 +37,14 @@ jobs:
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/samadhi-frontend:latest
           docker push $IMAGE_URI
 
-      - name: Deploy to EC2
+      - name: ssh into ec2 and deploy new image
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: 3.34.132.201
           username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          scripts: |
             cd /home/ec2-user/samadhi/web
-            docker-compose pull
-            docker-compose up -d
+            docker-compose down -v
+            docker rmi ${{steps.login-ecr.outputs.registry}}/samadhi-frontend:latest
+            docker-compose up -d --build
