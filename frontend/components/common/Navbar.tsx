@@ -24,14 +24,7 @@ export default function Navbar() {
       <div className='flex items-center space-x-2'>
         {isLoggedIn ? (
           <>
-            <span className='text-base font-medium'>{nickname}님</span>
-            <Button
-              variant='ghost'
-              className='text-base font-normal h-9'
-              onClick={handleLogout}
-            >
-              로그아웃
-            </Button>
+            <div className='text-base font-normal'>{nickname}님 환영해요!</div>
           </>
         ) : (
           <>

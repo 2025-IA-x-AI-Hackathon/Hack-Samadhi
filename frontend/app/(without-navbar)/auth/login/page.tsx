@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     try {
       const response = await api.post("/auth/login", { id, pwd });
-      const nickname = response.data.nickname;
+      const nickname = response.data.message;
       login(nickname);
       toast.success("로그인에 성공했습니다.");
       router.push("/home");
