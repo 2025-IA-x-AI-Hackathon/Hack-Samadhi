@@ -8,7 +8,6 @@ import Stepper from "@/components/ready/Stepper";
 import StepSampleVideo from "@/components/ready/StepSampleVideo";
 import StepScreenShare from "@/components/ready/StepScreenShare";
 import StepWebcam from "@/components/ready/StepWebcam";
-import { toast } from "sonner";
 
 export default function ReadyPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -128,8 +127,6 @@ export default function ReadyPage() {
       if (currentStep <= 3) {
         handleScrollToFinalStep(500);
       }
-    } else {
-      toast.error("웹캠을 활성화할 수 없습니다.");
     }
   };
 
