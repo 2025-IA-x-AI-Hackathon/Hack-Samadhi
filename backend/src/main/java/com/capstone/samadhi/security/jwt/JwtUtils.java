@@ -109,12 +109,14 @@ public class JwtUtils {
      * @return 토큰
      */
     public String parseBearerToken(HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        if(!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
-            log.error("요청 헤더가 존재하지 않음");
-            return null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("User-Token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
-        return authorization.substring(7);
+        return null;
     }
 
     /**
