@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FiMonitor } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useVideoStore } from "@/store/videoStore";
 
 interface StepScreenShareProps {
   onComplete: (isSelected: boolean) => void;
@@ -16,23 +17,17 @@ export default function StepScreenShare({
   isSelected,
 }: StepScreenShareProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { startScreenShare } = useVideoStore();
 
   const handleScreenShare = async () => {
     setIsLoading(true);
-
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { mediaSource: "screen" },
-        audio: true,
-      } as MediaStreamConstraints);
-
-      if (stream) {
-        onComplete(true);
-        toast("화면 공유 스트림 획득 성공!");
-      }
+      await startScreenShare();
+      onComplete(true);
+      toast.success("화면 공유가 시작되었습니다.");
     } catch (error) {
-      console.error("화면 공유 실패:", error);
-      toast("화면 공유를 시작하지 못했습니다. 권한을 확인해주세요.");
+      // console.error("화면 공유 실패:", error);
+      toast.error("화면 공유를 시작하지 못했습니다. 권한을 확인해주세요.");
       onComplete(false);
     } finally {
       setIsLoading(false);
@@ -66,12 +61,12 @@ export default function StepScreenShare({
         <Button
           className='w-full h-14 text-base font-semibold'
           onClick={handleScreenShare}
-          disabled={isLoading}
+          disabled={isLoading || isSelected}
         >
           {isLoading ? (
             "스트림 준비 중..."
           ) : isSelected ? (
-            <>✅ 화면 공유 활성화됨</>
+            "✅ 화면 공유 활성화됨"
           ) : (
             <>
               <FiMonitor className='w-5 h-5 mr-2' />
@@ -87,7 +82,7 @@ export default function StepScreenShare({
             className='mt-4 p-4 bg-green-50 border border-green-200 rounded-lg'
           >
             <p className='text-sm font-medium text-green-800'>
-              ✅ 화면 공유가 활성화되었습니다
+              ✅ 화면 공유가 활성화되었습니다. 다음 단계를 진행해주세요.
             </p>
           </motion.div>
         )}

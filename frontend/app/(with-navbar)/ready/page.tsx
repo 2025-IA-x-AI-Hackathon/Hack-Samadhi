@@ -98,17 +98,12 @@ export default function ReadyPage() {
     handleScrollToIntermediateStep(1, 100);
   };
 
-  const handleScreenShareComplete = (isActive: boolean) => {
-    setIsScreenShareActive(isActive);
-    if (isActive) {
-      setVideo("SCREEN_SHARE_STREAM", "실시간 화면 공유 스트림");
-
-      // 스텝 2 완료 후 (인덱스 1) 다음 스텝(인덱스 2)으로 이동 시도 (중간 단계 스크롤)
+  const handleScreenShareComplete = (didStart: boolean) => {
+    setIsScreenShareActive(didStart);
+    if (didStart) {
       if (currentStep <= 2) {
         handleScrollToIntermediateStep(2, 300);
       }
-    } else {
-      toast.error("화면 공유를 시작할 수 없습니다.");
     }
   };
 
@@ -119,7 +114,7 @@ export default function ReadyPage() {
     if (video) {
       setVideo(video.path, video.title);
 
-      // 스텝 2 완료 후 (인덱스 1) 다음 스텝(인덱스 2)으로 이동 시도 (중간 단계 스크롤)
+      // 스텝 2 완료 후 (인덱스 1) 다음 스텝(인덱스 2)으로 이동
       if (currentStep <= 2) {
         handleScrollToIntermediateStep(2, 300);
       }
@@ -129,7 +124,7 @@ export default function ReadyPage() {
   const handleWebcamComplete = (isActive: boolean) => {
     setIsWebcamActive(isActive);
     if (isActive) {
-      // 스텝 3 완료 후 (인덱스 2) 최종 스텝(인덱스 3)으로 이동 시도 (플래그 확인)
+      // 스텝 3 완료 후 (인덱스 2) 최종 스텝(인덱스 3)으로 이동
       if (currentStep <= 3) {
         handleScrollToFinalStep(500);
       }
@@ -140,10 +135,10 @@ export default function ReadyPage() {
 
   const workoutSelected = isScreenShareActive || selectedSampleVideo !== null;
   const workoutTitle = isScreenShareActive
-    ? "실시간 화면 공유 스트림"
+    ? "화면 공유"
     : selectedSampleVideo?.title || "없음";
   const workoutPath = isScreenShareActive
-    ? "SCREEN_SHARE_STREAM"
+    ? "SCREEN_SHARE"
     : selectedSampleVideo?.path || "#";
 
   return (

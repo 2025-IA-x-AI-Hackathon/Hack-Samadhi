@@ -121,13 +121,6 @@ export function useWebcamCanvas({
 
           // 스켈레톤 그리기
           drawSkeleton(ctx, landmarks);
-
-          // 캔버스 중앙 상단에 감지 성공 메시지 표시
-          ctx.fillStyle = "#00FF00";
-          ctx.font = "bold 20px Arial";
-          ctx.textAlign = "center";
-          ctx.fillText("감지 완료!", canvas.width / 2, 40);
-          ctx.textAlign = "left";
         } else {
           // 포즈 감지 안 되면 알림
           ctx.fillStyle = "#FF0000";
