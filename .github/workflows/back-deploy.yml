@@ -41,7 +41,7 @@ jobs:
           key: ${{secrets.SSH_PRIVATE_KEY}}
           scripts: |
             cd /home/ec2-user/samadhi/
-            sed -i "s|samadhi-api:.*|samadhi-api:${{ github.sha }}|g" docker-compose.yml
+            sed -i "s/samadhi-api:.*/samadhi-api:${{ github.sha }}/g" docker-compose.yml
             docker-compose down -v
             docker-compose pull
             docker-compose up -d --build
