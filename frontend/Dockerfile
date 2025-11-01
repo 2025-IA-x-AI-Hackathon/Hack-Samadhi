@@ -7,10 +7,6 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-
-ARG ENV_FILE
-RUN cat ${ENV_FILE} || true
-
 RUN npm run build
 
 # 2️⃣ Run Stage
