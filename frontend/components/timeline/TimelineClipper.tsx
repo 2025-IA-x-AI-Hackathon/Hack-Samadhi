@@ -29,7 +29,7 @@ const TimelineClipper = forwardRef<TimelineClipperRef>((props, ref) => {
     console.log(video.poseClass, currentPose);
     if (video.poseClass !== currentPose) {
       const now = Date.now();
-      if (currentPose) {
+      if (currentPose !== "unknown") {
         // End the previous pose timeline
         setTimelines((prev) => {
           const updated = [...prev];

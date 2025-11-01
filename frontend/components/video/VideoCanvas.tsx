@@ -123,7 +123,7 @@ export function VideoCanvas({
           lastFrameTime.current = now;
 
           // 포즈 분류
-          const poseClass = classifyPoseWithVectorized(data);
+          const poseClass = classifyPoseWithVectorized(data, angles);
 
           // Store에 저장
           setVideoData(landmarks, angles, fps, data, poseClass.bestPose);

@@ -584,9 +584,9 @@ export function vectorize(
 
   //랜드마크에 대해 픽셀 단위로 변환
   const data = landmarks.map((mark: Landmark) => {
-    // if ((mark.visibility || 0) < MIN_VISIBILITY) {
-    //   return [0, 0, 0];
-    // }
+    if ((mark.visibility || 0) < MIN_VISIBILITY) {
+      return [0, 0, 0];
+    }
     return [
       (mark.x * width - anchor.x) / scale,
       (mark.y * height - anchor.y) / scale,
