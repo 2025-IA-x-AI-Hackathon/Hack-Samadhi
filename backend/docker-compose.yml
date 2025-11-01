@@ -8,6 +8,6 @@ services:
     container_name: samadhi-api
     restart: always
     env_file:
-      - ./.env.prod
+      - ./.env
     ports:
       - "8888:8888"
