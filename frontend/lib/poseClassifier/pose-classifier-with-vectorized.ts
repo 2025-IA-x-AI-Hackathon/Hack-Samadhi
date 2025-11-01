@@ -1,5 +1,5 @@
 import { poseVectorizedData } from "@/types/poseVectorizedData";
-import { CalculateSimilarity } from "../mediapipe/angle-calculator";
+import { CalculateSimilarity, LANDMARK_INDICES } from "../mediapipe/angle-calculator";
 
 export function classifyPoseWithVectorized(vectorized: number[]) {
     let bestPose = "unknown";
@@ -8,8 +8,7 @@ export function classifyPoseWithVectorized(vectorized: number[]) {
     const THRESHOLD = 90;
 
     // 좌우 반전 버전 생성
-    // const mirroredAngles = normalizeMirroredAngles(angles);
-    const mirroredVectorized = vectorized;
+    const mirroredVectorized = normalizeMirroredVectorized(vectorized);
 
     for (const [name, poseVectorized] of Object.entries(poseVectorizedData)) {
       const calcDistance = (a: number[]) => {
@@ -41,27 +40,29 @@ export function classifyPoseWithVectorized(vectorized: number[]) {
   };
   
 // 좌우 반전된 각도 데이터 생성 함수
-// export const normalizeMirroredAngles = (angles: JointAngles): JointAngles => {
-//     const swapped: Partial<JointAngles> = { ...angles };
+export const normalizeMirroredVectorized = (vectorized: number[]): number[] => {
+    const swapped: Partial<number[]> = { ...vectorized };
 
-//     // 좌우 대칭 쌍 정의
-//     const mirrorPairs = [
-//       ["leftShoulder", "rightShoulder"],
-//       ["leftElbow", "rightElbow"],
-//       ["leftWrist", "rightWrist"],
-//       ["leftHip", "rightHip"],
-//       ["leftKnee", "rightKnee"],
-//       ["leftAnkle", "rightAnkle"],
-//       ["leftHipShoulderAlign", "rightHipShoulderAlign"],
-//     ];
+    // 좌우 대칭 쌍 정의
+    const mirrorPairs = [
+        [LANDMARK_INDICES.LEFT_EAR, LANDMARK_INDICES.RIGHT_EAR],
+        [LANDMARK_INDICES.LEFT_SHOULDER, LANDMARK_INDICES.RIGHT_SHOULDER],
+        [LANDMARK_INDICES.LEFT_ELBOW, LANDMARK_INDICES.RIGHT_ELBOW],
+        [LANDMARK_INDICES.LEFT_WRIST, LANDMARK_INDICES.RIGHT_WRIST],
+        [LANDMARK_INDICES.LEFT_INDEX, LANDMARK_INDICES.RIGHT_INDEX],
+        [LANDMARK_INDICES.LEFT_HIP, LANDMARK_INDICES.RIGHT_HIP],
+        [LANDMARK_INDICES.LEFT_KNEE, LANDMARK_INDICES.RIGHT_KNEE],
+        [LANDMARK_INDICES.LEFT_ANKLE, LANDMARK_INDICES.RIGHT_ANKLE],
+        [LANDMARK_INDICES.LEFT_HEEL, LANDMARK_INDICES.RIGHT_HEEL],
+    ];
+    
+    // 각 쌍의 값을 교환
+    mirrorPairs.forEach(([left, right]) => {
+      const temp = swapped[left];
+      swapped[left] = swapped[right];
+      swapped[right] = temp;
+    });
 
-//     // 각 쌍의 값을 교환
-//     mirrorPairs.forEach(([left, right]) => {
-//       const temp = swapped[left as keyof JointAngles];
-//       swapped[left as keyof JointAngles] = swapped[right as keyof JointAngles];
-//       swapped[right as keyof JointAngles] = temp;
-//     });
-
-//     // spine, neckAngle은 중앙 기준이므로 그대로 유지
-//     return swapped as JointAngles;
-// };
+    // spine, neckAngle은 중앙 기준이므로 그대로 유지
+    return swapped as number[];
+};

@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { usePoseStore } from "@/store/poseStore";
 import { useVideoStore } from "@/store/videoStore";
 import { useWebcamStore } from "@/store/webcamStore";
-import { FiSettings, FiX } from "react-icons/fi";
+import { FiSettings, FiX, FiEye, FiEyeOff } from "react-icons/fi";
 import WorkoutSettingsModal from "@/components/workout/WorkoutSettingsModal";
 import { CalculateSimilarity } from "@/lib/mediapipe/angle-calculator";
 import { VideoCanvas } from "@/components/video/VideoCanvas";
 import { VideoControls } from "@/components/video/VideoControls";
+import { motion, AnimatePresence } from "framer-motion";
 import ExitConfirmModal from "@/components/workout/ExitConfirmModal";
 import { toast } from "sonner";
 import TimelineClipper from "@/components/timeline/TimelineClipper";
@@ -155,7 +156,6 @@ export default function WorkoutPage() {
     videoSize: 50,
   });
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-
   const isScreenShare = sourceType === "stream";
   const isReady = isSetupComplete && isInitialized;
 
@@ -176,6 +176,22 @@ export default function WorkoutPage() {
 
   useVideoSync(videoRef, sourceType, isReady);
   useWebcamVideoElement(webcamVideoRef, webcamStream, isWebcamActive);
+
+  // 새로고침 감지 및 리다이렉트 (페이지 마운트 시 한 번만 실행)
+  useEffect(() => {
+    // 클라이언트 사이드에서만 실행
+    if (typeof window === "undefined") return;
+
+    // source가 없으면 새로고침으로 간주하여 /ready로 리다이렉트 (짧은 지연 후 체크)
+    const timeoutId = setTimeout(() => {
+      if (!source) {
+        router.push("/ready");
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 마운트 시 한 번만 실행
 
   useEffect(() => {
     if (source && isInitialized) {
@@ -229,56 +245,56 @@ export default function WorkoutPage() {
 
   if (!isReady) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-gray-50'>
-        <div className='p-8 text-center bg-white rounded-lg shadow-lg'>
-          <div className='w-10 h-10 mx-auto mb-4 border-4 border-blue-400 rounded-full border-t-transparent animate-spin'></div>
-          <p className='text-gray-600'>운동 데이터를 준비 중입니다...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="p-8 text-center bg-white rounded-lg shadow-lg">
+          <div className="w-10 h-10 mx-auto mb-4 border-4 border-blue-400 rounded-full border-t-transparent animate-spin"></div>
+          <p className="text-gray-600">운동 데이터를 준비 중입니다...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='flex flex-col h-screen bg-black text-white'>
-      <header className='flex items-center justify-between px-4 py-2 bg-black/80 backdrop-blur-sm z-40 shrink-0'>
+    <div className="flex flex-col h-screen bg-black text-white">
+      <header className="flex items-center justify-between px-4 py-2 bg-black/80 backdrop-blur-sm z-40 shrink-0">
         <Button
-          variant='outline'
+          variant="outline"
           onClick={() => setIsSettingsOpen(true)}
-          className='flex items-center justify-center gap-2 w-20 bg-white/10 border-white/20 text-white hover:bg-white hover:text-black'
+          className="flex items-center justify-center gap-2 w-20 bg-white/10 border-white/20 text-white hover:bg-white hover:text-black"
         >
-          <FiSettings className='w-4 h-4' />
-          <span className='hidden sm:inline'>설정</span>
+          <FiSettings className="w-4 h-4" />
+          <span className="hidden sm:inline">설정</span>
         </Button>
 
-        <div className='flex-1'></div>
+        <div className="flex-1"></div>
 
         <Button
-          variant='outline'
+          variant="outline"
           onClick={handleExit}
-          className='flex items-center justify-center gap-2 w-20 bg-white/10 border-white/20 text-white hover:text-white hover:bg-red-600 hover:border-red-600'
+          className="flex items-center justify-center gap-2 w-20 bg-white/10 border-white/20 text-white hover:text-white hover:bg-red-600 hover:border-red-600"
         >
-          <FiX className='w-4 h-4' />
-          <span className='hidden sm:inline'>종료</span>
+          <FiX className="w-4 h-4" />
+          <span className="hidden sm:inline">종료</span>
         </Button>
       </header>
 
-      <main className='flex flex-1 overflow-hidden'>
+      <main className="flex flex-1 overflow-hidden">
         <div
-          className='transition-all duration-300 flex items-center justify-center bg-black h-full'
+          className="transition-all duration-300 flex items-center justify-center bg-black h-full"
           style={{
             width: videoContainerWidth,
             padding: settings.hideVideo ? "0" : "1rem",
             overflow: "hidden",
           }}
         >
-          <div className='w-full max-w-full'>
+          <div className="w-full max-w-full">
             <VideoCanvas
               videoRef={videoRef}
               isInitialized={isInitialized}
               landmarker={videoLandmarker}
             />
             {!isScreenShare && (
-              <div className='p-2 bg-black/50 rounded-b-lg'>
+              <div className="p-2 bg-black/50 rounded-b-lg">
                 <VideoControls
                   isPlaying={isPlaying}
                   currentTime={currentTime}
@@ -292,14 +308,14 @@ export default function WorkoutPage() {
         </div>
 
         <div
-          className='transition-all duration-300 flex items-center justify-center bg-black h-full'
+          className="transition-all duration-300 flex items-center justify-center bg-black h-full"
           style={{
             width: webcamContainerWidth,
             padding: settings.hideWebcam ? "0" : "1rem",
             overflow: "hidden",
           }}
         >
-          <div className='w-full max-w-full'>
+          <div className="w-full max-w-full">
             <WebcamCanvas
               videoRef={webcamVideoRef}
               isActive={isWebcamActive}
@@ -307,7 +323,7 @@ export default function WorkoutPage() {
               landmarker={webcamLandmarker}
             />
             {!isScreenShare && (
-              <div className='p-2' style={{ visibility: "hidden" }}>
+              <div className="p-2" style={{ visibility: "hidden" }}>
                 <VideoControls
                   isPlaying={false}
                   currentTime={0}
