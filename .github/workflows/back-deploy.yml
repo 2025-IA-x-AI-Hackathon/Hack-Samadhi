@@ -1,0 +1,50 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: ap-northeast-2
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          IMAGE_URI=${{steps.login-ecr.outputs.registry}}/samadhi-api:latest
+          docker build -t samadhi-api:latest ./backend
+          docker tag samadhi-api:latest $IMAGE_URI
+
+      - name: push to ecr
+        run: |
+          IMAGE_URI=${{steps.login-ecr.outputs.registry}}/samadhi-api:latest
+          docker push $IMAGE_URI
+
+      - name: ssh into ec2 and deploy new image
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 3.36.55.185
+          username: ec2-user
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          scripts: |
+            cd /home/ec2-user/samadhi/
+            docker-compose down -v
+            docker-compose pull
+            docker-compose up -d
