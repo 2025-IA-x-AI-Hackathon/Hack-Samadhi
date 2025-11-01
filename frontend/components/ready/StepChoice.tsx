@@ -41,7 +41,7 @@ export default function StepChoice({ onSelectType }: StepChoiceProps) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onSelectType("sample")}
-          className='p-8 bg-white border-2 border-gray-200 shadow-lg cursor-pointer rounded-xl hover:border-blue-400 hover:shadow-xl transition-all'
+          className='p-8 bg-white border-2 border-gray-200 shadow-lg cursor-pointer rounded-xl hover:border-purple-400 hover:shadow-xl transition-all'
         >
           <div className='flex flex-col items-center text-center'>
             <div className='inline-flex items-center justify-center w-20 h-20 mb-4 bg-purple-100 rounded-full'>
