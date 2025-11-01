@@ -83,7 +83,7 @@ export default function StepWebcam({ onComplete }: StepWebcamProps) {
           {isWebcamLoading
             ? "웹캠 연결 중..."
             : isWebcamActive
-            ? "✅ 웹캠 활성화됨 (중지)"
+            ? "웹캠 활성화됨 (중지)"
             : "웹캠 활성화"}
         </Button>
 

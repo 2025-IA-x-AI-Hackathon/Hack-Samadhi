@@ -13,7 +13,7 @@ export default function StepChoice({ onSelectType }: StepChoiceProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className='flex flex-col items-center justify-center w-full max-w-2xl mx-auto'
+      className='flex flex-col items-center justify-center w-full max-w-2xl mx-auto mt-30'
     >
       <h2 className='mb-4 text-3xl font-bold text-gray-800'>운동 방식 선택</h2>
       <p className='mb-12 text-gray-600'>어떤 방식으로 운동하시겠어요?</p>

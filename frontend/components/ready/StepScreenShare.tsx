@@ -66,7 +66,7 @@ export default function StepScreenShare({
           {isLoading ? (
             "스트림 준비 중..."
           ) : isSelected ? (
-            "✅ 화면 공유 활성화됨"
+            "화면 공유 활성화됨"
           ) : (
             <>
               <FiMonitor className='w-5 h-5 mr-2' />
@@ -82,7 +82,7 @@ export default function StepScreenShare({
             className='mt-4 p-4 bg-green-50 border border-green-200 rounded-lg'
           >
             <p className='text-sm font-medium text-green-800'>
-              ✅ 화면 공유가 활성화되었습니다. 다음 단계를 진행해주세요.
+              화면 공유가 활성화되었습니다. 다음 단계를 진행해주세요.
             </p>
           </motion.div>
         )}
