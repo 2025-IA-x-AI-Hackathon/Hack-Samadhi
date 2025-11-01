@@ -4,7 +4,7 @@ import { CalculateSimilarity } from "@/lib/mediapipe/angle-calculator";
 import { usePoseStore } from "@/store/poseStore";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FiEyeOff } from "react-icons/fi";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 type Timeline = {
   pose: string;
@@ -18,6 +18,7 @@ export default function TimelineClipper() {
   const [currentPose, setCurrentPose] = useState<string | null>(null);
   const [timelines, setTimelines] = useState<Timeline[]>([]);
   const [similarities, setSimilarities] = useState<number[]>([]);
+  const [showSimilarity, setShowSimilarity] = useState(true);
 
   useEffect(() => {
     if (video.poseClass !== currentPose) {
@@ -49,7 +50,6 @@ export default function TimelineClipper() {
         setCurrentPose(video.poseClass);
       }
     }
-    // console.log('timelines', timelines);
   }, [video.poseClass]);
 
   useEffect(() => {
@@ -87,96 +87,109 @@ export default function TimelineClipper() {
   // 유사도에 따른 색상 반환
   const getSimilarityColor = (similarity: number): string => {
     if (similarity === 0) return "text-gray-400";
-    if (similarity >= 80) return "text-green-400";
-    if (similarity >= 60) return "text-yellow-400";
-    return "text-red-400";
+    if (similarity >= 80) return "text-emerald-500";
+    if (similarity >= 60) return "text-amber-500";
+    return "text-rose-500";
   };
 
   const firstStartTime =
     timelines.length > 0 ? timelines[0].startTime : Date.now();
 
-  //   {/* 유사한 floating 컴포넌트 - 가로 스크롤 리스트 */}
   return (
-    <AnimatePresence>
-      (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        className="fixed bottom-8 left-8 z-30"
-      >
-        <div
-          className="relative rounded-2xl shadow-2xl p-5 min-w-[260px]"
-          style={{
-            backgroundImage: "linear-gradient(90deg, #1f2937 0%, #475569 100%)",
-            minHeight: "150px",
-            maxHeight: "180px",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <button
-            onClick={() => {
-              /* 유저가 닫기 기능을 원한다면: setShowSimilarity(false); */
-            }}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
-            aria-label="목록 닫기"
-            tabIndex={0}
+    <>
+      <AnimatePresence>
+        {showSimilarity && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className='fixed bottom-8 left-8 z-30'
           >
-            <FiEyeOff className="w-3 h-3 text-white" />
-          </button>
-          <div className="w-full overflow-x-auto">
-            <div className="flex gap-3 px-2 pt-1 pb-2 min-h-[120px]">
-              {timelines.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex flex-col items-center min-w-[120px] bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-200"
-                >
-                  {/* 자세 이름 */}
-                  <div className="w-20 h-12 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center mb-2 shadow-lg">
-                    <span className="text-sm font-bold text-white truncate max-w-[10ch]">
-                      {item.pose}
-                    </span>
-                  </div>
+            <div className='relative bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/50 p-5 min-w-[280px] max-w-[600px]'>
+              <button
+                onClick={() => setShowSimilarity(false)}
+                className='absolute -top-2 -right-2 w-7 h-7 bg-gray-900 rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors '
+                aria-label='목록 닫기'
+              >
+                <FiEyeOff className='w-4 h-4 text-white' />
+              </button>
 
-                  {/* 시간 정보 */}
-                  <div className="w-full space-y-1 mb-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/60">시작</span>
-                      <span className="text-white font-medium">
-                        {formatRelativeTime(item.startTime, firstStartTime)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/60">종료</span>
-                      <span className="text-white font-medium">
-                        {formatRelativeTime(item.endTime, firstStartTime)}
-                      </span>
-                    </div>
-                  </div>
+              <h3 className='text-sm font-semibold text-gray-900 mb-3'>
+                자세 타임라인별 유사도
+              </h3>
 
-                  {/* 유사도 */}
-                  <div className="w-full pt-2 border-t border-white/20">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-white/60">유사도</span>
-                      <span
-                        className={`text-sm font-bold ${getSimilarityColor(
-                          item.similarity
-                        )}`}
-                      >
-                        {formatSimilarity(item.similarity)}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              <div className='overflow-x-auto'>
+                <div className='flex gap-3 pb-2 min-h-[140px]'>
+                  {timelines.map((item, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className='flex flex-col min-w-[140px] bg-gray-50 rounded-xl p-3 border border-gray-200'
+                    >
+                      {/* 자세 이름 */}
+                      <div className='w-full h-10 bg-linear-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center mb-3'>
+                        <span className='text-sm font-bold text-white truncate px-2'>
+                          {item.pose}
+                        </span>
+                      </div>
+
+                      {/* 시간 정보 */}
+                      <div className='space-y-2 mb-3'>
+                        <div className='flex items-center justify-between text-xs'>
+                          <span className='text-gray-500 font-medium'>
+                            시작
+                          </span>
+                          <span className='text-gray-900 font-semibold'>
+                            {formatRelativeTime(item.startTime, firstStartTime)}
+                          </span>
+                        </div>
+                        <div className='flex items-center justify-between text-xs'>
+                          <span className='text-gray-500 font-medium'>
+                            종료
+                          </span>
+                          <span className='text-gray-900 font-semibold'>
+                            {formatRelativeTime(item.endTime, firstStartTime)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 유사도 */}
+                      <div className='pt-3 border-t border-gray-200'>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-xs text-gray-500 font-medium'>
+                            유사도
+                          </span>
+                          <span
+                            className={`text-base font-bold ${getSimilarityColor(
+                              item.similarity
+                            )}`}
+                          >
+                            {formatSimilarity(item.similarity)}
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </motion.div>
-      )
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!showSimilarity && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowSimilarity(true)}
+          className='fixed bottom-8 left-8 z-30 w-12 h-12 bg-linear-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center hover:shadow-lg hover:scale-105 transition-all shadow-md'
+        >
+          <FiEye className='w-6 h-6 text-white' />
+        </motion.button>
+      )}
+    </>
   );
 }
