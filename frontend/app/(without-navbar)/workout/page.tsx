@@ -14,6 +14,7 @@ import { CalculateSimilarity } from "@/lib/mediapipe/angle-calculator";
 import { VideoCanvas } from "@/components/video/VideoCanvas";
 import { VideoControls } from "@/components/video/VideoControls";
 import { motion, AnimatePresence } from "framer-motion";
+import ExitConfirmModal from "@/components/workout/ExitConfirmModal";
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -51,6 +52,8 @@ export default function WorkoutPage() {
   });
 
   const [showSimilarity, setShowSimilarity] = useState(true);
+
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
   const isScreenShare = sourceType === "stream";
 
@@ -139,15 +142,17 @@ export default function WorkoutPage() {
   }, [webcamStream, isWebcamActive]);
 
   const handleExit = () => {
-    if (confirm("운동을 종료하시겠습니까?")) {
-      isUnmountingRef.current = true;
-      if (videoRef.current) {
-        videoRef.current.pause();
-        videoRef.current.src = "";
-      }
-      stopWebcam();
-      router.push("/");
+    setIsExitModalOpen(true);
+  };
+
+  const handleConfirmExit = () => {
+    isUnmountingRef.current = true;
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = "";
     }
+    stopWebcam();
+    router.push("/");
   };
 
   const handleTogglePlay = () => {
@@ -320,6 +325,12 @@ export default function WorkoutPage() {
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         onSettingsChange={setSettings}
+      />
+
+      <ExitConfirmModal
+        isOpen={isExitModalOpen}
+        onClose={() => setIsExitModalOpen(false)}
+        onConfirm={handleConfirmExit}
       />
     </div>
   );
