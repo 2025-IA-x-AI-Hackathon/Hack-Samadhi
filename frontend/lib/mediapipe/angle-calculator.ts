@@ -338,16 +338,19 @@ export function calculateAllAngles(
 }
 
 export interface CosAndEuc {
-    cosine: number;       // 코사인 유사도 (-1 ~ 1)
-    cosineScore: number;  // 코사인 점수 (0 ~ 100)
-    diff: number;         // 유클리드 거리
-    normDiff: number;     // 정규화된 유클리드 거리 (0 ~ 1)
-    euclidScore: number;  // 유클리드 점수 (0 ~ 100)
+  cosine: number; // 코사인 유사도 (-1 ~ 1)
+  cosineScore: number; // 코사인 점수 (0 ~ 100)
+  diff: number; // 유클리드 거리
+  normDiff: number; // 정규화된 유클리드 거리 (0 ~ 1)
+  euclidScore: number; // 유클리드 점수 (0 ~ 100)
 }
 
-export const CalculateCosAndEuc = (P1: number[], P2: number[], ) : CosAndEuc | null =>  {
-    const n = P1.length;
-
+export const CalculateCosAndEuc = (
+  P1: number[],
+  P2: number[]
+): CosAndEuc | null => {
+  // console.log("P1::::", P1);
+  const n = P1.length;
   if (n !== P2.length || n === 0) {
     return null;
   }
@@ -357,16 +360,31 @@ export const CalculateCosAndEuc = (P1: number[], P2: number[], ) : CosAndEuc | n
   let sum1 = 0;
   let sum2 = 0;
   let diffSum = 0;
+  let invisibleCount = 0; // 보이지 않는 landmark 개수
+  const totalLandmarks = n / 3; // 전체 landmark 개수
 
-  for (let i = 0; i < n; i++) {
-    const a = P1[i];
-    const b = P2[i];
+  for (let i = 0; i < n; i += 3) {
+    // 3개씩 묶어서 [x, y, z] 체크
+    const isP1Visible = P1[i] !== 0 || P1[i + 1] !== 0 || P1[i + 2] !== 0;
+    const isP2Visible = P2[i] !== 0 || P2[i + 1] !== 0 || P2[i + 2] !== 0;
 
-    dot += a * b;
-    sum1 += a * a;
-    sum2 += b * b;
-    const d = a - b;
-    diffSum += d * d;
+    // 둘 중 하나라도 보이지 않으면 카운트
+    if (!isP1Visible || !isP2Visible) {
+      invisibleCount++;
+      // 보이지 않는 점은 계산에서 제외 (0으로 처리)
+      continue;
+    }
+
+    // 둘 다 보이는 경우만 계산
+    for (let j = 0; j < 3; j++) {
+      const a = P1[i + j];
+      const b = P2[i + j];
+      dot += a * b;
+      sum1 += a * a;
+      sum2 += b * b;
+      const d = a - b;
+      diffSum += d * d;
+    }
   }
 
   const mag1 = Math.sqrt(sum1);
@@ -383,48 +401,57 @@ export const CalculateCosAndEuc = (P1: number[], P2: number[], ) : CosAndEuc | n
   } else if (cosine < -1) {
     cosine = -1;
   }
-  const cosineScore = ((cosine + 1) / 2) * 100; // 코사인 점수 -> 방향
 
-  // 2) 유클리드 거리 정규화 -> notion 계산공식
+  // 2) 유클리드 거리 정규화
   const diff = Math.sqrt(diffSum);
-  const normDiff = diff / (mag1 + mag2 + 1e-12); // 0~1 근사
-  const euclidScore = (1 - normDiff) * 100; // 유클리드 점수 -> 크기
-  
+  const normDiff = diff / (mag1 + mag2 + 1e-12);
+
+  // 3) 페널티 적용: 보이지 않는 landmark 비율만큼 감점
+  const visibilityRatio = (totalLandmarks - invisibleCount) / totalLandmarks;
+
+  const cosineScore = ((cosine + 1) / 2) * 100 * visibilityRatio;
+  const euclidScore = (1 - normDiff) * 100 * visibilityRatio;
+
   return {
-    "cosine": cosine,
-    "cosineScore": cosineScore,
-    "diff": diff,
-    "normDiff": normDiff,
-    "euclidScore": euclidScore
+    cosine: cosine,
+    cosineScore: cosineScore,
+    diff: diff,
+    normDiff: normDiff,
+    euclidScore: euclidScore,
+  };
+};
+
+export function CalculateMixedScore(
+  cosAndEuc: CosAndEuc | null,
+  lambda: number = 0.7
+): number {
+  if (!cosAndEuc) return 0;
+  const { cosine, cosineScore, diff, normDiff, euclidScore } = cosAndEuc;
+
+  // 3) 혼합 - 람다 기본값 0.7 (cos 0.7:euc 0.3)
+  if (lambda < 0 || lambda > 1) return 0;
+  const mixed = lambda * cosineScore + (1 - lambda) * euclidScore;
+
+  // 4) ε 허용 + 반올림
+  const eps = 1e-4;
+  let mixedScore = 0;
+  if (1 - cosine < eps && normDiff < eps) {
+    mixedScore = 100;
+  } else {
+    mixedScore = Math.max(0, Math.min(100, Math.round(mixed * 1000) / 1000));
   }
+
+  return mixedScore;
 }
 
-export function CalculateMixedScore(cosAndEuc: CosAndEuc | null, lambda: number = 0.7): number {
-    if (!cosAndEuc) return 0;
-    const {cosine, cosineScore, diff, normDiff, euclidScore} = cosAndEuc;
-
-    // 3) 혼합 - 람다 기본값 0.7 (cos 0.7:euc 0.3)
-    if (lambda <0 || lambda >1) return 0;
-    const mixed = lambda * cosineScore + (1-lambda) * euclidScore;
-
-    // 4) ε 허용 + 반올림
-    const eps = 1e-4;
-    let mixedScore = 0
-    if (1 - cosine < eps && normDiff < eps) {
-      mixedScore = 100;
-    }
-    else{
-      mixedScore = Math.max(0, Math.min(100, Math.round(mixed * 1000) / 1000))
-    }
-    
-      return mixedScore;
-}
-
-export function CalculateSimilarity(P1: number[], P2: number[], lambda: number = 0.7): number {
+export function CalculateSimilarity(
+  P1: number[],
+  P2: number[],
+  lambda: number = 0.7
+): number {
   const result = CalculateCosAndEuc(P1, P2);
-    return CalculateMixedScore(result, lambda);
+  return CalculateMixedScore(result, lambda);
 }
-
 
 /*
 
@@ -552,11 +579,10 @@ export function vectorize(
   height: number,
   width: number
 ) {
+  // console.log("landmars: ", landmarks);
   //픽셀 값 확인
   // console.log('height: ', height);
-
   //전처리 전 좌표값을 1차원 벡터로 변경
-
   //픽셀 단위로 변환한 좌표값
   const LHIP: Landmark = {
     x: landmarks[LANDMARK_INDICES.LEFT_HIP].x * width,
@@ -578,13 +604,12 @@ export function vectorize(
     y: landmarks[LANDMARK_INDICES.RIGHT_SHOULDER].y * height,
     z: landmarks[LANDMARK_INDICES.RIGHT_SHOULDER].z * width,
   };
-
   const anchor = getMidpoint(LHIP, RHIP);
   const scale = l2norm(LSHO, RSHO);
-
   //랜드마크에 대해 픽셀 단위로 변환
   const data = landmarks.map((mark: Landmark) => {
-    if ((mark.visibility || 0) < MIN_VISIBILITY) {
+    // visibility가 0.1 이하면 [0, 0, 0] 반환
+    if ((mark.visibility || 0) <= 0.1) {
       return [0, 0, 0];
     }
     return [
@@ -593,11 +618,9 @@ export function vectorize(
       (mark.z * width - anchor.z) / scale,
     ];
   });
-
   // console.log('data', data.flat());
   // const norm = l2norm1d(data.flat());
   // const result = data.flat().map((d) => d / norm);
   const result = data.flat();
-
   return result;
 }
